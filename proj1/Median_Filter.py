@@ -19,7 +19,7 @@ def apply_median_filter(image, size=3):
     return output
 
 # Load the image and convert it to float32
-I = img_as_float32(io.imread('saltpepper.jpg'))  # Load as grayscale
+I = img_as_float32(io.imread('../images/saltpepper.jpg'))  # Load as grayscale
 
 # Convert the image to grayscale if it's not already
 if I.ndim == 3:  # Check if the image is RGB

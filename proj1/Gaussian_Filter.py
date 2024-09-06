@@ -5,26 +5,24 @@ from scipy.ndimage import gaussian_filter
 import matplotlib.pyplot as plt
 
 # Load the image and convert it to float32
-I = img_as_float32(io.imread('mines-logo.jpg'))  # Load as grayscale
+I = img_as_float32(io.imread('../images/mines-logo.jpg'))  # Load as grayscale
 
 # Convert the image to grayscale if it's not already
 if I.ndim == 3:  # Check if the image is RGB
     I_gray = color.rgb2gray(I)  # Convert to grayscale
 
-# Define the Gaussian filter kernel size and sigma
-sigma = 5  # Standard deviation for Gaussian kernel
-
 # Apply Gaussian filter to create a blurred/shadow image
-blurred_image = gaussian_filter(I_gray, sigma=sigma)
+sigma = 10
+I_blur = gaussian_filter(I_gray, sigma=sigma)
 
 # Define the shift amount for the shadow effect
-shift_amount = (20, 20)  # Pixels to shift left-down
+shift_amount = (30, 30)  # Pixels to shift left-down
 
 # Apply shift filter to move the shadow
-shifted_blurred_image = shift(blurred_image, shift=shift_amount, mode='nearest')
+I_blur_shift = shift(I_blur, shift=shift_amount, mode='nearest')
 
 # Overlap the images by summing pixel values
-output_image = np.clip(I_gray + shifted_blurred_image, 0, 1)  # Ensure pixel values are in [0, 1]
+I_overlay = np.clip(I_gray + I_blur_shift, 0, 1)  # Ensure pixel values are in [0, 1]
 
 # Create Gaussian filter kernel image
 size = int(6 * sigma + 1)  # Kernel size
@@ -36,30 +34,30 @@ gaussian_kernel /= gaussian_kernel.sum()
 shifted_kernel = np.roll(gaussian_kernel, shift_amount, axis=(0, 1))
 
 # Display the results
-fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(1, 5, figsize=(18, 6))
+fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(1, 5, figsize=(12, 5))
 
 # Display the Gaussian filter kernel
-ax1.imshow(gaussian_kernel, cmap='gray')
-ax1.set_title('Gaussian Kernel')
+ax1.imshow(I_gray, cmap='gray')
+ax1.set_title('Gray Image')
 ax1.axis('off')
 
 # Display the shifted Gaussian kernel
-ax2.imshow(shifted_kernel, cmap='gray')
-ax2.set_title('Shifted Kernel')
+ax2.imshow(gaussian_kernel, cmap='gray')
+ax2.set_title('Gaussian Kernel')
 ax2.axis('off')
 
 # Display the blurred image
-ax3.imshow(blurred_image, cmap='gray')
-ax3.set_title('Blurred Image')
+ax3.imshow(shifted_kernel, cmap='gray')
+ax3.set_title('Shifted Kernel')
 ax3.axis('off')
 
 # Display the shifted blurred image
-ax4.imshow(shifted_blurred_image, cmap='gray')
+ax4.imshow(I_blur_shift, cmap='gray')
 ax4.set_title('Shifted Blurred Image')
 ax4.axis('off')
 
 # Display the output image
-ax5.imshow(output_image, cmap='gray')
+ax5.imshow(I_overlay, cmap='gray')
 ax5.set_title('Output Image')
 ax5.axis('off')
 

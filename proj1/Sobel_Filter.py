@@ -30,7 +30,7 @@ def Convolve2D(image, kernel):
     return output
 
 # Load the image and convert it to float32
-I = img_as_float32(io.imread('squirrel.jpg'))  # Load as grayscale
+I = img_as_float32(io.imread('../images/squirrel.jpg'))  # Load as grayscale
 
 # Convert the image to grayscale if it's not already
 if I.ndim == 3:  # Check if the image is RGB

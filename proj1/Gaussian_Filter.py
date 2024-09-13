@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 # TODO: use the actual shift kernel to visualize not make a new one lol
 
 # Load the image and convert it to float32
-I = img_as_float32(io.imread('../images/BlasterID.jpg'))
+I = img_as_float32(io.imread('../images/mines-logo.jpg'))
 
 # Convert the image to grayscale if it's in RGB
 if I.ndim == 3:

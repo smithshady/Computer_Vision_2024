@@ -3,6 +3,8 @@ from skimage import io, img_as_float32, color
 from skimage.util import view_as_windows
 import matplotlib.pyplot as plt
 
+# TODO: Use existing median filter from skimage or cv?
+
 def Median2D(image, size=3):
 
     # Calculate the padding width
@@ -20,7 +22,7 @@ def Median2D(image, size=3):
     return output
 
 # Load the image and convert it to float32
-I = img_as_float32(io.imread('../images/mri.jpg'))  # Load as grayscale
+I = img_as_float32(io.imread('../images/mri.jpg'))
 
 # Convert the image to grayscale if it's not already
 if I.ndim == 3:  # Check if the image is RGB

@@ -1,15 +1,17 @@
 import numpy as np
 from skimage import io, img_as_float32, color
 from scipy.ndimage import gaussian_filter, shift
-from scipy.ndimage import gaussian_filter
 import matplotlib.pyplot as plt
 
-# Load the image and convert it to float32
-I = img_as_float32(io.imread('../images/mines-logo.jpg'))  # Load as grayscale
+# TODO: need to find a better photo, maybe transparent is what we need?
+# TODO: use the actual shift kernel to visualize not make a new one lol
 
-# Convert the image to grayscale if it's not already
-if I.ndim == 3:  # Check if the image is RGB
-    I_gray = color.rgb2gray(I)  # Convert to grayscale
+# Load the image and convert it to float32
+I = img_as_float32(io.imread('../images/BlasterID.jpg'))
+
+# Convert the image to grayscale if it's in RGB
+if I.ndim == 3:
+    I_gray = color.rgb2gray(I) 
 
 # Apply Gaussian filter to create a blurred/shadow image
 sigma = 10

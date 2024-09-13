@@ -3,7 +3,8 @@ from skimage import io, img_as_float32, color
 from skimage.util import view_as_windows
 import matplotlib.pyplot as plt
 
-def apply_median_filter(image, size=3):
+def Median2D(image, size=3):
+
     # Calculate the padding width
     pad_size = size // 2
 
@@ -19,17 +20,17 @@ def apply_median_filter(image, size=3):
     return output
 
 # Load the image and convert it to float32
-I = img_as_float32(io.imread('../images/saltpepper.jpg'))  # Load as grayscale
+I = img_as_float32(io.imread('../images/mri.jpg'))  # Load as grayscale
 
 # Convert the image to grayscale if it's not already
 if I.ndim == 3:  # Check if the image is RGB
     I_gray = color.rgb2gray(I)  # Convert to grayscale
 
 # Apply the median filter
-I_filtered = apply_median_filter(I_gray, size=13)
+I_filtered = Median2D(I_gray, size=5)
 
 # Display the images side by side
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 
 ax1.imshow(I_gray, cmap='gray') 
 ax1.set_title('Gray Image')

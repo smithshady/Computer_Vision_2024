@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 
 def Convolve2D(image, kernel):
 
+    # Flip kernel vertically and horizontally for convolution
+    kernel = np.flipud(np.fliplr(kernel))
+
     # Get the dimensions of the image and kernel
     image_height, image_width = image.shape
     kernel_height, kernel_width = kernel.shape
@@ -30,11 +33,11 @@ def Convolve2D(image, kernel):
     return output
 
 # Load the image and convert it to float32
-I = img_as_float32(io.imread('../images/squirrel.jpg'))  # Load as grayscale
+I = img_as_float32(io.imread('../images/BlasterID.jpg'))
 
-# Convert the image to grayscale if it's not already
-if I.ndim == 3:  # Check if the image is RGB
-    I_gray = color.rgb2gray(I)  # Convert to grayscale
+# Convert the image to grayscale if it's in RGB
+if I.ndim == 3:
+    I_gray = color.rgb2gray(I) 
 
 # Define the Sobel kernel (example for the x-direction)
 sobelKernel = np.array([
@@ -43,8 +46,8 @@ sobelKernel = np.array([
     [-1, -2, -1]
 ])
 
-# Perform 2D convolution
-I_Convolve2D = Convolve2D(I_gray, sobelKernel)
+# Perform convolutions
+I_convolve = Convolve2D(I_gray, sobelKernel)
 I_full = convolve2d(I_gray, sobelKernel, mode='full')
 I_same = convolve2d(I_gray, sobelKernel, mode='same')
 I_valid = convolve2d(I_gray, sobelKernel, mode='valid')
@@ -56,20 +59,20 @@ ax1.imshow(I_gray, cmap='gray')
 ax1.set_title('Gray image')
 ax1.axis('off')
 
-ax2.imshow(I_Convolve2D, cmap='gray') 
-ax2.set_title('Manual convolution')
+ax2.imshow(I_convolve, cmap='gray') 
+ax2.set_title('Manual convolution (padded)' )
 ax2.axis('off')
 
 ax3.imshow(I_full, cmap='gray')
-ax3.set_title('full mode')
+ax3.set_title('full mode (padded)')
 ax3.axis('off')
 
 ax4.imshow(I_same, cmap='gray')
-ax4.set_title('same mode')
+ax4.set_title('same mode (input image size)')
 ax4.axis('off')
 
 ax5.imshow(I_valid, cmap='gray')
-ax5.set_title('valid mode')
+ax5.set_title('valid mode (not padded)')
 ax5.axis('off')
 
 # Show the images

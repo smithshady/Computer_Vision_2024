@@ -45,76 +45,96 @@ show_plot("Gradient in Y Direction (Iy)", I_y)
 show_plot("Magnitude of Gradient", magnitude)
 show_plot("Orientation of Gradient", orientation)
 
-#find corners
+#find corners using harris
 corners = feature.corner_harris(I_gray)
 binary_corners = corners > (0.01 * corners.max())  # Adjust threshold as needed
 coordinates = np.argwhere(binary_corners)
 
-# Visualize corners on the original image (optional)
+# Visualize corners on the original image
 I_corners = np.copy(I)
 I_corners[binary_corners] = [1, 0, 0]  # Mark corners in red
 I_corners_uint8 = (I_corners * 255).astype(np.uint8)
 show_plot("Detected Harris Corners", I_corners_uint8)
 
-# Count corners detected (optional)
+
+# Count corners detected
 # num_corners = np.sum(corners_binary)
 # print(f"Number of corners detected: {num_corners}")
 
-#For each corner: STUCK HERE
+#For each corner:
 #In a 16x16 window around the corner, compute gradient orientation histogram.
 #use a histogram with 36 bins, each covering 10 degrees, to encompass 0 to 360 degrees.
+degrees = 10
+num_bins = 36
+half_size = 8
+histogram_arr = []
+sub_size = 4
+bin_degrees = 360 / 8
+last_hist = np.zeros(num_bins)
+last_rotated = 0
 for y, x in coordinates:
-    # Define the window boundaries
-    y_min = max(y - 16 // 2, 0)
-    y_max = min(y + 16 // 2, I_gray.shape[0] - 1)
-    x_min = max(x - 16 // 2, 0)
-    x_max = min(x + 16 // 2, I_gray.shape[1] - 1)
+    if x > half_size and y > half_size and x < I_x.shape[1] - half_size and y < I_x.shape[0] - half_size:
+        # Extract the 16x16 window around the corner
+        window_Ix = I_x[y-half_size:y+half_size, x-half_size:x+half_size]
+        window_Iy = I_y[y-half_size:y+half_size, x-half_size:x+half_size]
 
-    # Extract the window around the corner
-    window_orientation = orientation[y_min:y_max+1, x_min:x_max+1]
-    
-    # Compute histogram of orientations
-    hist, bin_edges = np.histogram(window_orientation, bins=36, range=(-np.pi, np.pi))
-    
-    # Find the dominant orientation
-    dominant_orientation = (np.argmax(hist) * (2 * np.pi / 36)) - np.pi  # Convert to radians
+        window_magnitude = np.sqrt(window_Ix**2 + window_Iy**2)
+        window_orientation = np.degrees(np.arctan2(window_Iy, window_Ix)) % 360
 
-    # Normalize the orientation
-    normalized_orientation = (dominant_orientation + np.pi) % (2 * np.pi) - np.pi  # Normalize to [-pi, pi]
-    
+        # Create a histogram for this window
+        this_hist = np.zeros(num_bins)
 
+        # Loop through each pixel in the 16x16 window and accumulate into histogram
+        for i in range(16):
+            for j in range(16):
+                angle = window_orientation[i, j]
+                magnitude = window_magnitude[i, j]
+                bin_idx = int(angle // degrees) % num_bins  # Ensure bin index is within bounds
+                this_hist[bin_idx] += magnitude  # Accumulate magnitude for that bin
 
-#Find the dominant orientation, and normalize orientations by rotating them so that the dominant orientation is in the first bin.
+        # Find dominant orientation
+        dom_angle = np.argmax(this_hist) * degrees
 
-#Create a SIFT descriptor using the (rotated) 16x16 window. That is, use 16 sub-blocks of 4x4 size. 
-# For each sub-block, create an 8-bin orientation histogram. 
-# Stack the histogram values of all sub-blocks so that a 128-element descriptor vector is created.
+        # Rotate the orientation values by subtracting the dominant angle
+        rotated_orientation = (window_orientation - dom_angle) % 360
 
-#Normalized the descriptor (to the range 0-1). Clamp all vector values > 0.2 to 0.2, and re-normalize.
+        sift_descriptor = []  # Reset for each corner
 
-#For only one of the corners:
-#Display the gradient orientation histogram and print the dominant orientation
+        for i in range(0, 16, sub_size):
+            for j in range(0, 16, sub_size):
+                # Extract 4x4 sub-block
+                sub_block_orientation = rotated_orientation[i:i + sub_size, j:j + sub_size]
+                sub_block_magnitude = window_magnitude[i:i + sub_size, j:j + sub_size]
 
-#Re-compute & display the gradient orientation histogram after rotation
-#Display the 8-bin orientation histogram for each sub-block (we have 4x4 sub-blocks, so a total of 16 histograms)
+                # Compute an 8-bin histogram for the sub-block
+                sub_hist = np.zeros(8)
+                angles_flat = sub_block_orientation.ravel()
+                magnitudes_flat = sub_block_magnitude.ravel()
 
-#Print out the 128-element descriptor vector constructed from the histograms
-#Print out the normalize descriptor, and re-normalized descriptor
+                for idx in range(angles_flat.size):
+                    angle = angles_flat[idx]
+                    magnitude = magnitudes_flat[idx]
+                    sub_bin_idx = int(angle // bin_degrees) % 8  # Ensure sub-bin index is within bounds
+                    sub_hist[sub_bin_idx] += magnitude
 
+                # Append the sub-block histogram to the descriptor list
+                sift_descriptor.append(sub_hist)
 
-#Find the dominant orientation, and normalize orientations by rotating them so that the dominant orientation is in the first bin.
+        # Flatten the list of sub-histograms into a single 128-element vector
+        sift_descriptor = np.concatenate(sift_descriptor)
 
-#Create a SIFT descriptor using the (rotated) 16x16 window. That is, use 16 sub-blocks of 4x4 size. 
-# For each sub-block, create an 8-bin orientation histogram. 
-# Stack the histogram values of all sub-blocks so that a 128-element descriptor vector is created.
+        # Normalize the descriptor (to the range 0-1)
+        if np.max(sift_descriptor) > 0:
+            sift_descriptor = sift_descriptor / np.max(sift_descriptor)
 
-#Normalized the descriptor (to the range 0-1). Clamp all vector values > 0.2 to 0.2, and re-normalize.
+        # Clamp values > 0.2 to 0.2
+        sift_descriptor[sift_descriptor > 0.2] = 0.2
 
-#For only one of the corners:
-#Display the gradient orientation histogram and print the dominant orientation
+        # Re-normalize the descriptor
+        if np.sum(sift_descriptor) > 0:
+            sift_descriptor = sift_descriptor / np.sum(sift_descriptor)
 
-#Re-compute & display the gradient orientation histogram after rotation
-#Display the 8-bin orientation histogram for each sub-block (we have 4x4 sub-blocks, so a total of 16 histograms)
-
-#Print out the 128-element descriptor vector constructed from the histograms
-#Print out the normalize descriptor, and re-normalized descriptor
+        # Store the descriptor for this corner
+        histogram_arr.append(sift_descriptor)
+        last_hist =  this_hist
+        last_rotated = window_orientation

@@ -138,3 +138,98 @@ for y, x in coordinates:
         histogram_arr.append(sift_descriptor)
         last_hist =  this_hist
         last_rotated = window_orientation
+
+print (len(coordinates))
+
+for coord in coordinates:
+    y, x = coord
+    if x > half_size and y > half_size and x < I_x.shape[1] - half_size and y < I_x.shape[0] - half_size:
+        # Extract the 16x16 window around the corner
+        window_Ix = I_x[y-half_size:y+half_size, x-half_size:x+half_size]
+        window_Iy = I_y[y-half_size:y+half_size, x-half_size:x+half_size]
+
+        window_magnitude = np.sqrt(window_Ix**2 + window_Iy**2)
+        window_orientation = np.degrees(np.arctan2(window_Iy, window_Ix)) % 360
+
+        dominant_angle = np.argmax(last_hist) * degrees
+        print(f"Dominant Orientation for last corner: {dominant_angle} degrees")
+
+        # Display the gradient orientation histogram before rotation
+        plt.figure(figsize=(8, 4))
+        plt.bar(np.arange(num_bins) * degrees, last_hist, width=degrees, color='b', alpha=0.7)
+        plt.title('Gradient Orientation Histogram (Before Rotation)')
+        plt.xlabel('Orientation (degrees)')
+        plt.ylabel('Magnitude')
+        plt.xlim(0, 360)
+        plt.show()
+
+        # Rotate the orientations
+        rotated_orientation = (window_orientation - dominant_angle) % 360
+
+        sift_descriptor = []
+        sub_histograms = []  # For visualizing each 4x4 sub-block histogram
+
+        for i in range(0, 16, sub_size):
+            for j in range(0, 16, sub_size):
+                sub_block_orientation = rotated_orientation[i:i + sub_size, j:j + sub_size]
+                sub_block_magnitude = window_magnitude[i:i + sub_size, j:j + sub_size]
+
+                sub_hist = np.zeros(8)
+                angles_flat = sub_block_orientation.ravel()
+                magnitudes_flat = sub_block_magnitude.ravel()
+
+                for idx in range(angles_flat.size):
+                    angle = angles_flat[idx]
+                    magnitude = magnitudes_flat[idx]
+                    sub_bin_idx = int(angle // bin_degrees) % 8
+                    sub_hist[sub_bin_idx] += magnitude
+
+                sift_descriptor.append(sub_hist)
+                sub_histograms.append(sub_hist)
+
+        # Re-compute and display the gradient orientation histogram after rotation
+        rotated_hist = np.zeros(8)
+        for idx in range(rotated_orientation.ravel().size):
+            angle = rotated_orientation.ravel()[idx]
+            magnitude = window_magnitude.ravel()[idx]
+            bin_idx = int(angle // bin_degrees) % 8
+            rotated_hist[bin_idx] += magnitude
+
+        plt.figure(figsize=(8, 4))
+        plt.bar(np.arange(8) * bin_degrees, rotated_hist, width=bin_degrees, color='r', alpha=0.7)
+        plt.title('Gradient Orientation Histogram (After Rotation)')
+        plt.xlabel('Orientation (degrees)')
+        plt.ylabel('Magnitude')
+        plt.xlim(0, 360)
+        plt.show()
+
+        # Display the 8-bin histogram for each 4x4 sub-block (total 16 histograms)
+        for idx, sub_hist in enumerate(sub_histograms):
+            plt.figure(figsize=(4, 2))
+            plt.bar(np.arange(8) * bin_degrees, sub_hist, width=bin_degrees, color='g', alpha=0.7)
+            plt.title(f'Sub-block {idx + 1} Orientation Histogram')
+            plt.xlabel('Orientation (degrees)')
+            plt.ylabel('Magnitude')
+            plt.xlim(0, 360)
+            plt.show()
+
+        # Flatten the list of sub-histograms into a single 128-element vector
+        sift_descriptor = np.concatenate(sift_descriptor)
+
+        # Print the 128-element descriptor
+        print("128-element SIFT descriptor:")
+        print(sift_descriptor)
+
+        # Normalize the descriptor (to the range 0-1)
+        if np.max(sift_descriptor) > 0:
+            sift_descriptor = sift_descriptor / np.max(sift_descriptor)
+
+        # Print the normalized descriptor
+        print("Normalized SIFT descriptor:")
+        print(sift_descriptor)
+
+        # Clamp values > 0.2 to 0.2
+        sift_descriptor[sift_descriptor > 0.2] = 0.2
+        break
+    else:
+        print("No valid corner found for visualization.")

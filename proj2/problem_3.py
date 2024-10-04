@@ -113,14 +113,29 @@ plt.imshow(non_max_suppression, cmap='gray')
 plt.title('Corners as individual pixels')
 plt.show()
 
+coordinates = np.where(non_max_suppression > 0)
+
+# Create an RGB version of the grayscale image (in case the original was RGB)
+I_corners = np.copy(I)
+for i in range(len(coordinates[0])):
+    y, x = coordinates[0][i], coordinates[1][i]
+    
+    # Set a small 3x3 region around each corner to a dark red color
+    I_corners[max(y-1, 0):min(y+2, I.shape[0]), max(x-1, 0):min(x+2, I.shape[1]), :] = [1, 0, 0]  # Red (RGB)
+
+# Display the final image with larger red corners
+plt.imshow(I_corners)
+plt.title("Detected Harris Corners")
+plt.show()
+
 # display corners overlapped on the original image
 # TODO get corners to overlap original image
-overlapped = cv2.addWeighted(im_3, 0.5, non_max_suppression, 0.5, 0)
-for i in range(6, x - 10):
-  for j in range(6, y - 10):
-    if C[i][j] >= new_threshold:
-      if C[i][j] == C[i-5:i+5, j-5:j+5].max():
-        cv2.rectangle(im_3, (i, j), (i+3, j-3), (255, 0, 0), 2)
-plt.imshow(im_3, cmap='gray')
-plt.title('corners overlapped on the original image')
-plt.show()
+# overlapped = cv2.addWeighted(im_3, 0.5, non_max_suppression, 0.5, 0)
+# for i in range(6, x - 10):
+#   for j in range(6, y - 10):
+#     if C[i][j] >= new_threshold:
+#       if C[i][j] == C[i-5:i+5, j-5:j+5].max():
+#         cv2.rectangle(im_3, (i, j), (i+3, j-3), (255, 0, 0), 2)
+# plt.imshow(im_3, cmap='gray')
+# plt.title('corners overlapped on the original image')
+# plt.show()

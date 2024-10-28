@@ -65,11 +65,11 @@ if __name__ == "__main__":
     X /= X[3]  # Convert homogeneous to 3D coordinates
     X = X.T  # Transpose for plotting
 
-    #  Visualize the 3D points
+    #  Visualize the points
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.plot(X[:, 0], X[:, 1], X[:, 2], 'ro', markersize=2)
-    ax.set_box_aspect([1, 1, 1])  # Aspect ratio is 1:1:1
+    ax.set_box_aspect([1, 1, 1])
     ax.set_xlabel('X [m]')
     ax.set_ylabel('Y [m]')
     ax.set_zlabel('Z [m]')

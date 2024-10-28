@@ -48,7 +48,7 @@ t = [[0],
      [3],
      [1]]
 # The rotation matrix about the x-axis follows the following format:
-theta = -30
+theta = -30 * math.pi / 180
 R = [[1, 0, 0],
      [0, math.cos(theta), -math.sin(theta)],
      [0, math.sin(theta), math.cos(theta)]]
